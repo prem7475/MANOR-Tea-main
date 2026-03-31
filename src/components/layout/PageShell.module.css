@@ -1,0 +1,37 @@
+.shell {
+  display: grid;
+  gap: 20px;
+}
+
+.header {
+  display: grid;
+  gap: 10px;
+  padding: 18px 18px 6px;
+  border-radius: var(--radius-lg);
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(var(--ink-rgb), 0.08);
+}
+
+.title {
+  margin: 0;
+  font-size: clamp(2rem, 2.8vw, 2.7rem);
+  line-height: 1.08;
+}
+
+.subtitle {
+  color: rgba(var(--ink-rgb), 0.68);
+  font-size: 1.06rem;
+  max-width: 66ch;
+}
+
+.actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding-top: 4px;
+}
+
+.content {
+  display: grid;
+  gap: 18px;
+}

@@ -1,0 +1,39 @@
+:root {
+  /* Brand palette (warm luxury) */
+  --color-ink: #3e2723; /* deep brown */
+  --color-beige: #f5f5dc; /* beige */
+  --color-gold: #c8a951; /* gold accent */
+
+  /* RGB helpers for consistent translucency */
+  --ink-rgb: 62, 39, 35;
+  --accent-rgb: 200, 169, 81;
+
+  --color-bg: #fffaf3; /* soft cream background */
+  --color-surface: #ffffff;
+  --color-surface-2: var(--color-beige);
+  --color-text: var(--color-ink);
+  --color-muted: rgba(var(--ink-rgb), 0.72);
+  --color-border: rgba(var(--ink-rgb), 0.14);
+
+  --color-accent: var(--color-gold);
+  --color-accent-2: #dcc06a; /* lighter gold */
+  --color-accent-strong: #b8923e; /* darker gold */
+  --color-accent-ink: var(--color-ink);
+
+  --shadow-sm: 0 6px 22px rgba(var(--ink-rgb), 0.08);
+  --shadow-md: 0 14px 44px rgba(var(--ink-rgb), 0.14);
+  --shadow-lg: 0 24px 70px rgba(var(--ink-rgb), 0.18);
+
+  --radius-sm: 12px;
+  --radius-md: 18px;
+  --radius-lg: 26px;
+
+  --container: 1120px;
+
+  --font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Arial, 'Noto Sans',
+    'Liberation Sans', sans-serif;
+  --font-serif: ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace;
+
+  --focus-ring: 0 0 0 3px rgba(var(--accent-rgb), 0.45);
+}

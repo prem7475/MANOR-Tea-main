@@ -1,0 +1,40 @@
+.field {
+  display: grid;
+  gap: 8px;
+}
+
+.label {
+  font-weight: 650;
+  color: rgba(var(--ink-rgb), 0.92);
+}
+
+.input {
+  width: 100%;
+  border-radius: 14px;
+  border: 1px solid rgba(var(--ink-rgb), 0.14);
+  background: rgba(255, 255, 255, 0.92);
+  padding: 12px 14px;
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.input::placeholder {
+  color: rgba(var(--ink-rgb), 0.45);
+}
+
+.input:focus {
+  border-color: rgba(var(--accent-rgb), 0.85);
+}
+
+.inputError {
+  border-color: rgba(161, 63, 63, 0.6);
+}
+
+.hint {
+  font-size: 0.92rem;
+  color: rgba(var(--ink-rgb), 0.62);
+}
+
+.error {
+  font-size: 0.92rem;
+  color: rgba(161, 63, 63, 0.95);
+}

@@ -1,0 +1,68 @@
+.viewport {
+  position: fixed;
+  z-index: 80;
+  right: 16px;
+  top: 16px;
+  display: grid;
+  gap: 10px;
+  width: min(420px, calc(100% - 32px));
+}
+
+.toast {
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(var(--ink-rgb), 0.12);
+  border-radius: 18px;
+  box-shadow: var(--shadow-md);
+  padding: 12px 12px 12px 14px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+}
+
+.body {
+  display: grid;
+  gap: 2px;
+}
+
+.title {
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.message {
+  color: rgba(var(--ink-rgb), 0.78);
+  font-size: 0.98rem;
+}
+
+.close {
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  background: transparent;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 160ms ease;
+}
+
+.close:hover {
+  background: rgba(var(--ink-rgb), 0.06);
+}
+
+.info {
+  border-left: 4px solid rgba(var(--accent-rgb), 0.9);
+}
+
+.success {
+  border-left: 4px solid rgba(47, 138, 92, 0.9);
+}
+
+.warning {
+  border-left: 4px solid rgba(221, 140, 16, 0.9);
+}
+
+.error {
+  border-left: 4px solid rgba(161, 63, 63, 0.9);
+}

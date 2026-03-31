@@ -1,0 +1,38 @@
+.stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid rgba(var(--ink-rgb), 0.12);
+  border-radius: 999px;
+  padding: 6px 10px;
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.value {
+  min-width: 26px;
+  text-align: center;
+  font-weight: 750;
+}
+
+.step {
+  width: 36px;
+  height: 36px;
+}
+
+.sm {
+  padding: 4px 8px;
+}
+
+.sm .step {
+  width: 32px;
+  height: 32px;
+}
+
+.lg {
+  padding: 8px 12px;
+}
+
+.lg .step {
+  width: 40px;
+  height: 40px;
+}
