@@ -1,6 +1,5 @@
 import { create } from 'zustand'
 import { fetchOffers } from '../services/offersApi.js'
-import { offers as seededOffers } from '../assets/data/offers.js'
 
 function normalizeCode(value) {
   return String(value ?? '')
@@ -10,7 +9,7 @@ function normalizeCode(value) {
 }
 
 export const useOffersStore = create((set, get) => ({
-  offers: seededOffers ?? [],
+  offers: [],
   status: 'idle',
   error: null,
   lastLoadedAt: 0,
@@ -47,4 +46,3 @@ export const useOffersStore = create((set, get) => ({
     return get().offers.find((o) => normalizeCode(o.code) === normalized) ?? null
   },
 }))
-

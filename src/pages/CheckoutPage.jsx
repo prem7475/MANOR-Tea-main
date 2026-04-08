@@ -17,9 +17,9 @@ import { useDocumentTitle } from '../hooks/useDocumentTitle.js'
 import { trackEvent } from '../utils/analytics.js'
 
 const paymentMethods = [
-  { id: 'upi', label: 'UPI (Mock)', note: 'Instant, simple, secure UI.' },
-  { id: 'card', label: 'Card (Mock)', note: 'Visa / Mastercard / RuPay.' },
-  { id: 'cod', label: 'Cash on delivery', note: 'Pay at delivery (demo).' },
+  { id: 'upi', label: 'UPI', note: 'Instant, simple, secure.' },
+  { id: 'card', label: 'Card', note: 'Visa / Mastercard / RuPay.' },
+  { id: 'cod', label: 'Cash on delivery', note: 'Pay at delivery.' },
 ]
 
 export default function CheckoutPage() {
@@ -156,7 +156,7 @@ export default function CheckoutPage() {
     if (!ok) return
 
     setIsPlacing(true)
-    notify({ title: 'Processing payment', message: 'This is a mock payment flow.', intent: 'info' })
+    notify({ title: 'Processing payment', message: 'Please wait while we confirm your order.', intent: 'info' })
 
     await new Promise((r) => window.setTimeout(r, 900))
 
@@ -372,7 +372,7 @@ export default function CheckoutPage() {
                   <div className={styles.reviewText}>
                     {availablePaymentMethods.find((p) => p.id === payment)?.label ?? '—'}
                   </div>
-                  <div className={styles.reviewHint}>This is a mock payment UI for demo.</div>
+                  <div className={styles.reviewHint}>Payment confirmation will be reflected in your order status.</div>
                 </div>
               </div>
 

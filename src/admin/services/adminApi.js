@@ -29,6 +29,15 @@ export async function adminLogout() {
   return apiJson('/api/admin/auth/logout', { method: 'POST', authToken: token })
 }
 
+export async function adminUpdatePassword({ currentPassword, nextPassword }) {
+  const token = authTokenOrThrow()
+  return apiJson('/api/admin/auth/password', {
+    method: 'POST',
+    authToken: token,
+    body: { currentPassword, nextPassword },
+  })
+}
+
 export async function fetchAdminProducts() {
   const token = authTokenOrThrow()
   const data = await apiJson('/api/admin/products', { authToken: token })
@@ -117,4 +126,16 @@ export async function fetchAdminUsers({ q } = {}) {
 export async function fetchAdminAnalytics() {
   const token = authTokenOrThrow()
   return apiJson('/api/admin/analytics', { authToken: token })
+}
+
+export async function fetchAdminSettings() {
+  const token = authTokenOrThrow()
+  const data = await apiJson('/api/admin/settings', { authToken: token })
+  return data?.settings ?? null
+}
+
+export async function updateAdminSettings(payload) {
+  const token = authTokenOrThrow()
+  const data = await apiJson('/api/admin/settings', { method: 'PUT', authToken: token, body: payload })
+  return data?.settings ?? null
 }

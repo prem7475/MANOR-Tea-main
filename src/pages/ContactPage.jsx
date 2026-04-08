@@ -6,15 +6,19 @@ import Card from '../components/ui/Card.jsx'
 import Button from '../components/ui/Button.jsx'
 import Input from '../components/ui/Input.jsx'
 import { useUiStore } from '../hooks/useUiStore.js'
+import { useSiteSettingsStore } from '../hooks/useSiteSettingsStore.js'
 import { isNonEmpty, isValidEmail } from '../utils/validation.js'
 import { useDocumentTitle } from '../hooks/useDocumentTitle.js'
+import { sendContactMessage } from '../services/publicApi.js'
 
 export default function ContactPage() {
   useDocumentTitle('Contact')
 
   const notify = useUiStore((s) => s.notify)
+  const contact = useSiteSettingsStore((s) => s.contact)
   const [form, setForm] = useState({ name: '', email: '', message: '' })
   const [errors, setErrors] = useState({})
+  const [submitting, setSubmitting] = useState(false)
 
   function validate() {
     const e = {}
@@ -25,15 +29,23 @@ export default function ContactPage() {
     return Object.keys(e).length === 0
   }
 
-  function submit(event) {
+  async function submit(event) {
     event.preventDefault()
     if (!validate()) {
       notify({ title: 'Please check details', message: 'Some fields need attention.', intent: 'warning' })
       return
     }
-    notify({ title: 'Message received', message: 'This is a demo form (no email sent).', intent: 'success' })
-    setForm({ name: '', email: '', message: '' })
-    setErrors({})
+    setSubmitting(true)
+    try {
+      await sendContactMessage(form)
+      notify({ title: 'Message received', message: 'We will reply within 24 hours.', intent: 'success' })
+      setForm({ name: '', email: '', message: '' })
+      setErrors({})
+    } catch (err) {
+      notify({ title: 'Send failed', message: err?.message || 'Please try again.', intent: 'error' })
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
@@ -83,7 +95,7 @@ export default function ContactPage() {
               {errors.message ? <span className={styles.error}>{errors.message}</span> : null}
             </label>
 
-            <Button type="submit" fullWidth>
+            <Button type="submit" fullWidth loading={submitting}>
               Send message
             </Button>
           </form>
@@ -94,23 +106,19 @@ export default function ContactPage() {
           <div className={styles.details}>
             <div>
               <div className={styles.detailLabel}>Email</div>
-              <div className={styles.detailValue}>support@manor-tea.example</div>
+              <div className={styles.detailValue}>{contact?.email ?? 'support@manor-tea.com'}</div>
             </div>
             <div>
               <div className={styles.detailLabel}>Phone</div>
-              <div className={styles.detailValue}>+91 00000 00000</div>
+              <div className={styles.detailValue}>{contact?.phone ?? '+91 98765 43210'}</div>
             </div>
             <div>
               <div className={styles.detailLabel}>Location</div>
-              <div className={styles.detailValue}>Nagpur, India (demo)</div>
+              <div className={styles.detailValue}>{contact?.location ?? 'Nagpur, India'}</div>
             </div>
-          </div>
-          <div className={styles.note}>
-            Replace placeholders with real contact info before production deployment.
           </div>
         </Card>
       </div>
     </PageShell>
   )
 }
-

@@ -34,8 +34,7 @@ export default function GiftsPage() {
           <div className={styles.kicker}>Gifting made premium</div>
           <div className={styles.heroTitle}>Ready in minutes</div>
           <div className={styles.heroDesc}>
-            Pick a hamper, checkout, and track. This rebuild uses a mock payment UI — swap it for a real gateway
-            later.
+            Pick a hamper, checkout, and track delivery — crafted for thoughtful gifting.
           </div>
         </div>
         <img className={styles.heroImg} src="/gift hamper 4.jpg" alt="" loading="lazy" />

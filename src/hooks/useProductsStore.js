@@ -1,9 +1,7 @@
 import { create } from 'zustand'
 import { fetchProducts } from '../services/productsApi.js'
-import { products as seededProducts } from '../assets/data/products.js'
-
 export const useProductsStore = create((set, get) => ({
-  products: seededProducts ?? [],
+  products: [],
   status: 'idle', // idle | loading | success | error
   error: null,
   lastLoadedAt: 0,
@@ -42,4 +40,3 @@ export const useProductsStore = create((set, get) => ({
     return get().getBySlug(key) ?? get().getById(key)
   },
 }))
-

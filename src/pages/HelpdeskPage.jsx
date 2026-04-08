@@ -8,19 +8,19 @@ import { useDocumentTitle } from '../hooks/useDocumentTitle.js'
 const faqs = [
   {
     q: 'How do I track my order?',
-    a: 'After checkout you’ll get an Order ID. Use it on the Track Order page. In this demo, status updates quickly so you can see the full flow.',
+    a: 'After checkout you’ll get an Order ID. Use it on the Track Order page to see the latest status.',
   },
   {
     q: 'Do you offer returns?',
-    a: 'Yes — we keep it simple. If something is wrong, contact us and we’ll help. This demo includes a mock flow.',
+    a: 'Yes — if something is wrong, contact us and we’ll help. Refunds follow the policy on our Refund page.',
   },
   {
     q: 'What payments are supported?',
-    a: 'This rebuild includes a mock payment UI (UPI/Card/COD). For production, connect a real gateway and server-side verification.',
+    a: 'We support UPI, card, and cash on delivery where available.',
   },
   {
     q: 'Is there free delivery?',
-    a: 'Free delivery applies above ₹499 in this demo (configurable).',
+    a: 'Free delivery applies above the threshold shown at checkout.',
   },
 ]
 

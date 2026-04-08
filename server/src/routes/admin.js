@@ -9,6 +9,7 @@ import { AdminUser } from '../models/AdminUser.js'
 import { Product } from '../models/Product.js'
 import { Offer } from '../models/Offer.js'
 import { Order } from '../models/Order.js'
+import { SiteSettings } from '../models/SiteSettings.js'
 import { createPublicId } from '../utils/ids.js'
 import { slugify } from '../utils/slug.js'
 import { sendError, sendJson } from '../utils/http.js'
@@ -57,6 +58,59 @@ router.get('/auth/me', requireAdmin, async (req, res) => {
 
 router.post('/auth/logout', requireAdmin, async (req, res) => {
   return sendJson(res, 200, { ok: true })
+})
+
+router.post('/auth/password', requireAdmin, async (req, res, next) => {
+  try {
+    const parsed = z
+      .object({
+        currentPassword: z.string().min(1),
+        nextPassword: z.string().min(8),
+      })
+      .safeParse(req.body)
+    if (!parsed.success) return sendError(res, 400, 'Invalid password payload', parsed.error.flatten())
+
+    const admin = await AdminUser.findOne({ email: req.admin?.email ?? '' })
+    if (!admin) return sendError(res, 404, 'Admin not found')
+
+    const ok = await bcrypt.compare(parsed.data.currentPassword, admin.passwordHash)
+    if (!ok) return sendError(res, 401, 'Current password is incorrect')
+
+    admin.passwordHash = await bcrypt.hash(parsed.data.nextPassword, 12)
+    await admin.save()
+
+    return sendJson(res, 200, { ok: true })
+  } catch (err) {
+    next(err)
+  }
+})
+
+router.get('/settings', requireAdmin, async (req, res, next) => {
+  try {
+    const settings = await getSettingsDoc()
+    return sendJson(res, 200, { settings })
+  } catch (err) {
+    next(err)
+  }
+})
+
+router.put('/settings', requireAdmin, async (req, res, next) => {
+  try {
+    const parsed = settingsSchema.safeParse(req.body)
+    if (!parsed.success) return sendError(res, 400, 'Invalid settings payload', parsed.error.flatten())
+    const current = await getSettingsDoc()
+    const next = {
+      payments: { ...current.payments, ...(parsed.data.payments ?? {}) },
+      notifications: parsed.data.notifications ?? current.notifications,
+      contact: { ...current.contact, ...(parsed.data.contact ?? {}) },
+      shipping: { ...current.shipping, ...(parsed.data.shipping ?? {}) },
+    }
+
+    const updated = await SiteSettings.findOneAndUpdate({ key: 'default' }, next, { new: true }).lean()
+    return sendJson(res, 200, { settings: updated })
+  } catch (err) {
+    next(err)
+  }
 })
 
 router.get('/products', requireAdmin, async (req, res, next) => {
@@ -502,3 +556,33 @@ router.get('/analytics', requireAdmin, async (req, res, next) => {
 })
 
 export default router
+async function getSettingsDoc() {
+  const existing = await SiteSettings.findOne({ key: 'default' }).lean()
+  if (existing) return existing
+  const created = await SiteSettings.create({ key: 'default' })
+  return created.toObject()
+}
+
+const settingsSchema = z.object({
+  payments: z
+    .object({
+      upi: z.boolean().optional(),
+      card: z.boolean().optional(),
+      cod: z.boolean().optional(),
+    })
+    .optional(),
+  notifications: z.boolean().optional(),
+  contact: z
+    .object({
+      email: z.string().email().optional(),
+      phone: z.string().min(6).optional(),
+      location: z.string().min(2).optional(),
+    })
+    .optional(),
+  shipping: z
+    .object({
+      freeAbove: z.number().min(0).optional(),
+      fee: z.number().min(0).optional(),
+    })
+    .optional(),
+})

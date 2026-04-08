@@ -4,6 +4,8 @@ import { z } from 'zod'
 import { Product } from '../models/Product.js'
 import { Offer } from '../models/Offer.js'
 import { Order } from '../models/Order.js'
+import { SiteSettings } from '../models/SiteSettings.js'
+import { ContactMessage } from '../models/ContactMessage.js'
 import { createOrderId } from '../utils/ids.js'
 import { sendError, sendJson } from '../utils/http.js'
 import { renderOrderConfirmation, sendEmail } from '../services/email.js'
@@ -57,6 +59,40 @@ router.get('/offers', async (req, res, next) => {
   try {
     const offers = await Offer.find({ active: true }).sort({ createdAt: -1 }).lean()
     sendJson(res, 200, { offers })
+  } catch (err) {
+    next(err)
+  }
+})
+
+const contactSchema = z.object({
+  name: z.string().min(2),
+  email: z.string().email(),
+  message: z.string().min(5),
+})
+
+router.post('/contact', async (req, res, next) => {
+  try {
+    const parsed = contactSchema.safeParse(req.body)
+    if (!parsed.success) return sendError(res, 400, 'Invalid contact payload', parsed.error.flatten())
+
+    await ContactMessage.create(parsed.data)
+    return sendJson(res, 201, { ok: true })
+  } catch (err) {
+    next(err)
+  }
+})
+
+async function getSettingsDoc() {
+  const existing = await SiteSettings.findOne({ key: 'default' }).lean()
+  if (existing) return existing
+  const created = await SiteSettings.create({ key: 'default' })
+  return created.toObject()
+}
+
+router.get('/settings', async (req, res, next) => {
+  try {
+    const settings = await getSettingsDoc()
+    return sendJson(res, 200, { settings })
   } catch (err) {
     next(err)
   }
@@ -188,7 +224,7 @@ router.post('/orders', async (req, res, next) => {
       statusHistory: [{ status: 'Pending', at: now, updatedBy: 'system' }],
       customer: { fullName: customer.fullName, phone: customer.phone, email: customer.email ? String(customer.email).trim().toLowerCase() : null },
       address,
-      payment: { method: payment.method, status: 'paid (mock)', provider: 'demo', paidAt: now },
+      payment: { method: payment.method, status: 'paid', provider: 'demo', paidAt: now },
       currency: 'INR',
       source: 'storefront',
       meta: { note: String(parsed.data.note ?? ''), giftNote: String(parsed.data.giftNote ?? ''), utm: parsed.data.utm ?? null },

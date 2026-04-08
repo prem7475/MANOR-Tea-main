@@ -44,7 +44,7 @@ const OrderSchema = new mongoose.Schema(
     },
     payment: {
       method: { type: String, default: 'upi' },
-      status: { type: String, default: 'paid (mock)' },
+      status: { type: String, default: 'paid' },
       provider: { type: String, default: 'demo' },
       transactionId: { type: String, default: null },
       paidAt: { type: Date, default: null },

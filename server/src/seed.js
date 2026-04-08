@@ -8,6 +8,9 @@ import { connectDb } from './db/connect.js'
 import { AdminUser } from './models/AdminUser.js'
 import { Product } from './models/Product.js'
 import { Offer } from './models/Offer.js'
+import { Order } from './models/Order.js'
+import { ContactMessage } from './models/ContactMessage.js'
+import { SiteSettings } from './models/SiteSettings.js'
 
 async function upsertAdmin() {
   const email = env.adminSeed.email
@@ -20,6 +23,37 @@ async function upsertAdmin() {
     passwordHash,
     name: env.adminSeed.name,
   })
+}
+
+async function ensureCollections() {
+  const db = AdminUser.db
+  const existing = await db.listCollections().toArray()
+  const existingNames = new Set(existing.map((c) => c.name))
+  const collections = [
+    AdminUser.collection.name,
+    Product.collection.name,
+    Offer.collection.name,
+    Order.collection.name,
+    ContactMessage.collection.name,
+    SiteSettings.collection.name,
+  ]
+
+  for (const name of collections) {
+    if (!existingNames.has(name)) {
+      await db.createCollection(name)
+    }
+  }
+}
+
+async function ensureIndexes() {
+  await Promise.all([
+    AdminUser.init(),
+    Product.init(),
+    Offer.init(),
+    Order.init(),
+    ContactMessage.init(),
+    SiteSettings.init(),
+  ])
 }
 
 async function importFrontendSeed() {
@@ -43,9 +77,26 @@ async function importFrontendSeed() {
 }
 
 async function main() {
-  await connectDb({ mongoUri: env.mongoUri })
+  // eslint-disable-next-line no-console
+  console.log('[seed] connecting')
+  const connection = await connectDb({ mongoUri: env.mongoUri })
+  // eslint-disable-next-line no-console
+  console.log('[seed] connected')
+  await ensureCollections()
+  // eslint-disable-next-line no-console
+  console.log('[seed] collections ready')
+  // Indexes are created on application startup (autoIndex).
   await upsertAdmin()
-  await importFrontendSeed()
+  // eslint-disable-next-line no-console
+  console.log('[seed] admin ensured')
+  if (process.env.SEED_SAMPLE_DATA === 'true') {
+    await importFrontendSeed()
+    // eslint-disable-next-line no-console
+    console.log('[seed] sample data imported')
+  }
+  // eslint-disable-next-line no-console
+  console.log('[seed] closing connection')
+  await connection.close()
   // eslint-disable-next-line no-console
   console.log('[seed] done')
   process.exitCode = 0
@@ -56,4 +107,3 @@ main().catch((err) => {
   console.error('[seed] failed:', err)
   process.exitCode = 1
 })
-

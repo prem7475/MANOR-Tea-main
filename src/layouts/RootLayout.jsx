@@ -9,6 +9,7 @@ import ToastHost from '../components/ui/ToastHost.jsx'
 import { useScrollToTop } from '../hooks/useScrollToTop.js'
 import { useProductsStore } from '../hooks/useProductsStore.js'
 import { useOffersStore } from '../hooks/useOffersStore.js'
+import { useSiteSettingsStore } from '../hooks/useSiteSettingsStore.js'
 import { prefetchCriticalRoutes } from '../utils/routePrefetch.js'
 import styles from './RootLayout.module.css'
 
@@ -18,11 +19,13 @@ export default function RootLayout() {
   const reduceMotion = useReducedMotion()
   const loadProducts = useProductsStore((s) => s.load)
   const loadOffers = useOffersStore((s) => s.load)
+  const loadSettings = useSiteSettingsStore((s) => s.load)
 
   useEffect(() => {
     loadProducts()
     loadOffers()
-  }, [loadOffers, loadProducts])
+    loadSettings()
+  }, [loadOffers, loadProducts, loadSettings])
 
   useEffect(() => {
     const idle = window.requestIdleCallback || ((cb) => window.setTimeout(cb, 600))

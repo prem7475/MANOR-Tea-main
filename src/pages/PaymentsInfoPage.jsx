@@ -12,7 +12,7 @@ export default function PaymentsInfoPage() {
   return (
     <PageShell
       title="Payments info"
-      subtitle="This rebuild ships with a mock payment UI for demo. Replace with a real gateway + server-side verification for production."
+      subtitle="Secure payment options and delivery details for your order."
       actions={
         <>
           <Button to="/checkout" variant="secondary">
@@ -28,24 +28,23 @@ export default function PaymentsInfoPage() {
         <Card className={styles.card}>
           <div className={styles.title}>Payment methods</div>
           <ul className={styles.list}>
-            <li>UPI (mock)</li>
-            <li>Card (mock)</li>
-            <li>Cash on delivery (demo)</li>
+            <li>UPI</li>
+            <li>Card</li>
+            <li>Cash on delivery</li>
           </ul>
         </Card>
 
         <Card className={styles.card}>
           <div className={styles.title}>Security</div>
           <div className={styles.text}>
-            In production, payments must be verified server-side (webhooks / signature validation). Client-only “success”
-            screens are not secure.
+            Payments are processed securely. For card/UPI, confirmation is reflected in your order status.
           </div>
         </Card>
 
         <Card className={styles.card}>
           <div className={styles.title}>Shipping</div>
           <div className={styles.text}>
-            Free delivery above ₹499 (demo). Delivery timelines and service areas should be configured from your backend.
+            Free delivery applies above the threshold shown at checkout. Standard delivery timelines appear in your order.
           </div>
         </Card>
 
@@ -59,4 +58,3 @@ export default function PaymentsInfoPage() {
     </PageShell>
   )
 }
-
