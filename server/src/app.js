@@ -14,6 +14,11 @@ function parseOrigins(value) {
     .split(',')
     .map((s) => s.trim())
     .filter(Boolean)
+    .map((origin) => origin.replace(/\/$/, ''))
+}
+
+function normalizeOrigin(value) {
+  return String(value ?? '').trim().replace(/\/$/, '')
 }
 
 export function createApp() {
@@ -29,7 +34,8 @@ export function createApp() {
       origin: (origin, callback) => {
         if (!origin) return callback(null, true)
         if (!origins.length) return callback(null, true)
-        if (origins.includes(origin)) return callback(null, true)
+        const normalized = normalizeOrigin(origin)
+        if (origins.includes(normalized)) return callback(null, true)
         return callback(new Error('Not allowed by CORS'))
       },
     }),
