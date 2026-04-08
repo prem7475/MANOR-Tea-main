@@ -9,6 +9,10 @@ body {
   height: 100%;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   margin: 0;
   background: radial-gradient(1400px 800px at 20% -10%, #ffffff, var(--color-bg));

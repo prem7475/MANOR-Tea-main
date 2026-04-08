@@ -5,7 +5,7 @@ import PageShell from '../components/layout/PageShell.jsx'
 import Card from '../components/ui/Card.jsx'
 import Button from '../components/ui/Button.jsx'
 import Badge from '../components/ui/Badge.jsx'
-import { offers } from '../assets/data/offers.js'
+import { useOffersStore } from '../hooks/useOffersStore.js'
 import { useCartStore } from '../hooks/useCartStore.js'
 import { useUiStore } from '../hooks/useUiStore.js'
 import { formatINR } from '../utils/currency.js'
@@ -17,6 +17,7 @@ export default function OffersPage() {
   const setOfferCode = useCartStore((s) => s.setOfferCode)
   const notify = useUiStore((s) => s.notify)
   const getSummary = useCartStore((s) => s.getSummary)
+  const offers = useOffersStore((s) => s.offers)
 
   function apply(code) {
     setOfferCode(code)
@@ -75,4 +76,3 @@ export default function OffersPage() {
     </PageShell>
   )
 }
-

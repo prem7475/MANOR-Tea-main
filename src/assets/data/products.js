@@ -1,6 +1,7 @@
 export const products = [
   {
     id: 't1',
+    slug: 'classic-leaf-tea-250g',
     groupId: 'classic-leaf',
     variantLabel: '250g',
     name: 'MANOR Classic Leaf Tea',
@@ -26,6 +27,7 @@ export const products = [
   },
   {
     id: 't2',
+    slug: 'classic-leaf-tea-500g',
     groupId: 'classic-leaf',
     variantLabel: '500g',
     name: 'MANOR Classic Leaf Tea',
@@ -51,6 +53,7 @@ export const products = [
   },
   {
     id: 't3',
+    slug: 'strong-dust-tea-250g',
     name: 'MANOR Strong Dust Tea',
     subtitle: '250g',
     description: 'Bold, quick-brewing dust tea for a strong cup.',
@@ -74,6 +77,7 @@ export const products = [
   },
   {
     id: 't4',
+    slug: 'signature-masala-blend-120g',
     name: 'MANOR Signature Masala Blend',
     subtitle: '120g',
     description: 'A warming, spiced blend with a premium finish.',
@@ -97,6 +101,7 @@ export const products = [
   },
   {
     id: 't5',
+    slug: 'golden-breakfast-250g',
     name: 'MANOR Golden Breakfast',
     subtitle: '250g',
     description: 'Clean, bright and confident — a premium breakfast brew.',
@@ -121,6 +126,7 @@ export const products = [
   // Gift Hampers
   {
     id: 'g1',
+    slug: 'gift-hamper-01',
     name: 'Manor Gift Hamper 01',
     subtitle: 'Assorted premium teas',
     description: 'A thoughtful assortment of MANOR favourites.',
@@ -139,6 +145,7 @@ export const products = [
   },
   {
     id: 'g2',
+    slug: 'gift-hamper-02',
     name: 'Manor Gift Hamper 02',
     subtitle: 'Luxury collection',
     description: 'A premium set for celebrations and special occasions.',
@@ -157,6 +164,7 @@ export const products = [
   },
   {
     id: 'g3',
+    slug: 'gift-hamper-03',
     name: 'Manor Gift Hamper 03',
     subtitle: 'Exotic flavours',
     description: 'A bold, exotic hamper for tea connoisseurs.',
@@ -175,6 +183,7 @@ export const products = [
   },
   {
     id: 'g4',
+    slug: 'gift-hamper-04',
     name: 'Manor Gift Hamper 04',
     subtitle: 'For tea lovers',
     description: 'A premium selection for everyday tea lovers.',
@@ -192,6 +201,7 @@ export const products = [
   },
   {
     id: 'g5',
+    slug: 'gift-hamper-05',
     name: 'Manor Gift Hamper 05',
     subtitle: 'Assorted blends',
     description: 'A tasteful hamper with assorted blends.',
@@ -209,6 +219,7 @@ export const products = [
   },
   {
     id: 'g6',
+    slug: 'gift-hamper-06',
     name: 'Manor Gift Hamper 06',
     subtitle: 'Ultimate set',
     description: 'A premium gift set for true tea enthusiasts.',

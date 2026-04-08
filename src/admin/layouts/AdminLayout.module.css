@@ -1,0 +1,32 @@
+.shell {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  background: radial-gradient(1200px 700px at 20% -10%, #ffffff, var(--color-bg));
+}
+
+.main {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.content {
+  padding: 22px 20px 30px;
+}
+
+.page {
+  min-height: 70vh;
+}
+
+@media (min-width: 900px) {
+  .content {
+    padding: 26px 28px 40px;
+  }
+}
+
+@media (max-width: 920px) {
+  .shell {
+    grid-template-columns: 1fr;
+  }
+}

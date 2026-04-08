@@ -1,6 +1,7 @@
 .card {
   overflow: hidden;
   border-radius: var(--radius-lg);
+  transition: transform 180ms ease, box-shadow 180ms ease;
 }
 
 .media {
@@ -16,6 +17,7 @@
   width: 100%;
   aspect-ratio: 4 / 3;
   object-fit: cover;
+  transition: transform 220ms ease;
 }
 
 .badges {
@@ -114,5 +116,26 @@
 
   .viewAction {
     display: none;
+  }
+}
+
+@media (hover: hover) {
+  .card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+  }
+
+  .card:hover .image {
+    transform: scale(1.03);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card {
+    transition: none;
+  }
+
+  .image {
+    transition: none;
   }
 }

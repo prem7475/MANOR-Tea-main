@@ -1,8 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { offers } from '../assets/data/offers.js'
-import { getProductById } from '../services/catalogService.js'
 import { createId } from '../utils/id.js'
+import { useOffersStore } from './useOffersStore.js'
 
 // Cart store (Zustand + localStorage persistence).
 // - Stores a snapshot of cart lines for stability (prices/images at time of add).
@@ -17,7 +16,7 @@ function normalizeOfferCode(value) {
 function findOffer(code) {
   const normalized = normalizeOfferCode(code)
   if (!normalized) return null
-  return offers.find((o) => o.code === normalized) ?? null
+  return useOffersStore.getState().findByCode(normalized)
 }
 
 function clampQty(qty) {
@@ -29,17 +28,18 @@ function clampQty(qty) {
 export const useCartStore = create(
   persist(
     (set, get) => ({
+      hydrated: false,
       items: [],
       offerCode: null,
 
-      addProduct: (productId, quantity = 1) => {
-        const product = getProductById(productId)
-        if (!product || !product.inStock) return
+      addProduct: (product, quantity = 1) => {
+        const p = product && typeof product === 'object' ? product : null
+        if (!p || !p.inStock) return
 
         const qty = clampQty(quantity)
         set((state) => {
           const existing = state.items.find(
-            (i) => i.kind === 'product' && i.productId === productId,
+            (i) => i.kind === 'product' && i.productId === p.id,
           )
           if (existing) {
             return {
@@ -52,11 +52,11 @@ export const useCartStore = create(
           const line = {
             lineId: createId('line'),
             kind: 'product',
-            productId,
-            title: product.name,
-            subtitle: product.subtitle,
-            image: product.image,
-            unitPrice: product.price,
+            productId: p.id,
+            title: p.name,
+            subtitle: p.subtitle,
+            image: p.image,
+            unitPrice: p.price,
             quantity: qty,
           }
 
@@ -96,6 +96,8 @@ export const useCartStore = create(
 
       clearOffer: () => set({ offerCode: null }),
 
+      setHydrated: (value) => set({ hydrated: Boolean(value) }),
+
       getSummary: () => {
         const { items, offerCode } = get()
         const subtotal = items.reduce((sum, i) => sum + i.unitPrice * i.quantity, 0)
@@ -115,6 +117,12 @@ export const useCartStore = create(
         return { subtotal, discount, shipping, total, offer }
       },
     }),
-    { name: 'manor:cart:v1', version: 1 },
+    {
+      name: 'manor:cart:v1',
+      version: 1,
+      onRehydrateStorage: () => (state) => {
+        state?.setHydrated?.(true)
+      },
+    },
   ),
 )

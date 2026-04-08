@@ -1,0 +1,241 @@
+.page {
+  display: grid;
+  gap: 14px;
+}
+
+.header {
+  padding: 6px 2px 8px;
+  display: grid;
+  gap: 6px;
+}
+
+.titleRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.title {
+  font-weight: 950;
+  font-family: var(--font-serif);
+  font-size: 1.5rem;
+}
+
+.subtitle {
+  color: rgba(var(--ink-rgb), 0.72);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+.panel {
+  padding: 16px;
+  border-radius: var(--radius-lg);
+  display: grid;
+  gap: 14px;
+}
+
+.panelTop {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.panelTitle {
+  font-weight: 950;
+  font-family: var(--font-serif);
+  font-size: 1.2rem;
+}
+
+.panelSub {
+  color: rgba(var(--ink-rgb), 0.68);
+  margin-top: 3px;
+}
+
+.trend {
+  display: grid;
+  grid-template-columns: repeat(14, minmax(0, 1fr));
+  gap: 6px;
+  align-items: end;
+}
+
+.trendCol {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+}
+
+.trendTrack {
+  width: 100%;
+  height: 140px;
+  border-radius: 18px;
+  border: 1px solid rgba(var(--ink-rgb), 0.1);
+  background: rgba(255, 255, 255, 0.68);
+  display: flex;
+  align-items: flex-end;
+  padding: 6px;
+}
+
+.trendBar {
+  width: 100%;
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(var(--accent-rgb), 0.92), rgba(var(--accent-rgb), 0.52));
+  box-shadow: 0 18px 46px rgba(var(--accent-rgb), 0.18);
+}
+
+.trendLabel {
+  font-size: 0.72rem;
+  color: rgba(var(--ink-rgb), 0.66);
+  font-weight: 850;
+  text-align: center;
+}
+
+.mix {
+  display: grid;
+  gap: 10px;
+}
+
+.mixRow {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  padding: 12px;
+  border-radius: var(--radius-lg);
+  border: 1px solid rgba(var(--ink-rgb), 0.1);
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.mixLeft {
+  display: grid;
+  gap: 2px;
+}
+
+.mixLabel {
+  font-weight: 900;
+}
+
+.mixMeta {
+  color: rgba(var(--ink-rgb), 0.7);
+  font-size: 0.92rem;
+}
+
+.mixBarTrack {
+  height: 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(var(--ink-rgb), 0.12);
+  background: rgba(255, 255, 255, 0.7);
+  overflow: hidden;
+}
+
+.mixBar {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(var(--accent-rgb), 0.85), rgba(var(--accent-rgb), 0.55));
+}
+
+.topList {
+  display: grid;
+  gap: 8px;
+}
+
+.topRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  border: 1px solid rgba(var(--ink-rgb), 0.1);
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.topName {
+  font-weight: 900;
+}
+
+.topMeta {
+  color: rgba(var(--ink-rgb), 0.68);
+  margin-top: 2px;
+  font-size: 0.92rem;
+}
+
+.topValue {
+  font-weight: 950;
+}
+
+.empty {
+  max-width: none;
+}
+
+.trendSkeleton {
+  display: grid;
+  grid-template-columns: repeat(14, minmax(0, 1fr));
+  gap: 6px;
+  align-items: end;
+}
+
+.skeletonCol {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+}
+
+.skeletonBar {
+  width: 100%;
+  border-radius: 14px;
+}
+
+.skeletonLabel {
+  width: 70%;
+  height: 10px;
+}
+
+.mixSkeleton {
+  display: grid;
+  gap: 10px;
+}
+
+.skeletonLine {
+  height: 10px;
+  width: 70%;
+}
+
+.skeletonLineShort {
+  height: 10px;
+  width: 45%;
+}
+
+.skeletonBarTrack {
+  height: 12px;
+  border-radius: 999px;
+}
+
+.topLeft {
+  display: grid;
+  gap: 6px;
+}
+
+.skeletonValue {
+  width: 40%;
+  height: 12px;
+}
+
+@media (min-width: 980px) {
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+  }
+
+  .panel {
+    min-height: 320px;
+  }
+
+  .mixRow {
+    grid-template-columns: 0.9fr 1.1fr;
+    align-items: center;
+  }
+}

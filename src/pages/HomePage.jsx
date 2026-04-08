@@ -7,22 +7,26 @@ import Button from '../components/ui/Button.jsx'
 import Card from '../components/ui/Card.jsx'
 import Badge from '../components/ui/Badge.jsx'
 import ProductCard from '../components/commerce/ProductCard.jsx'
-import { getAllProducts, getProductsByCategory } from '../services/catalogService.js'
-import { offers } from '../assets/data/offers.js'
+import { useProductsStore } from '../hooks/useProductsStore.js'
+import { useOffersStore } from '../hooks/useOffersStore.js'
 import { useDocumentTitle } from '../hooks/useDocumentTitle.js'
 
 export default function HomePage() {
   useDocumentTitle('Home')
 
-  const featured = useMemo(() => getAllProducts().filter((p) => p.inStock).slice(0, 4), [])
+  const products = useProductsStore((s) => s.products)
+  const offers = useOffersStore((s) => s.offers)
+
+  const featured = useMemo(() => (products ?? []).filter((p) => p.inStock).slice(0, 4), [products])
 
   const bestSellers = useMemo(() => {
-    const all = getAllProducts()
+    const all = products ?? []
     const byTag = all.filter((p) => p.tags?.includes('bestSeller') && p.inStock)
     return (byTag.length ? byTag : all.filter((p) => p.inStock)).slice(0, 4)
-  }, [])
+  }, [products])
 
-  const giftPreview = useMemo(() => getProductsByCategory('gift').slice(0, 3), [])
+  const giftPreview = useMemo(() => (products ?? []).filter((p) => p.category === 'gift').slice(0, 3), [products])
+  const topOffers = useMemo(() => (offers ?? []).slice(0, 3), [offers])
 
   return (
     <div className={styles.page}>
@@ -162,7 +166,7 @@ export default function HomePage() {
           <p className={styles.sectionDesc}>Simple rules, clear savings.</p>
         </div>
         <div className={styles.offerGrid}>
-          {offers.slice(0, 3).map((o) => (
+          {topOffers.map((o) => (
             <Card key={o.id} className={styles.offerCard}>
               <Badge tone="accent">{o.code}</Badge>
               <div className={styles.offerTitle}>{o.title}</div>

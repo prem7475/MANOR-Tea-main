@@ -1,0 +1,100 @@
+.page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px 18px;
+  background: radial-gradient(1200px 700px at 20% -10%, #ffffff, var(--color-bg));
+}
+
+.card {
+  width: min(520px, 100%);
+  padding: 18px;
+  border-radius: var(--radius-lg);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 10px 14px;
+  border-bottom: 1px solid rgba(var(--ink-rgb), 0.08);
+}
+
+.logo {
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  object-fit: contain;
+}
+
+.wordmark {
+  font-family: var(--font-serif);
+  font-weight: 900;
+  letter-spacing: 0.18em;
+  line-height: 1.05;
+}
+
+.caption {
+  color: rgba(var(--ink-rgb), 0.62);
+  font-size: 0.85rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  margin-top: 3px;
+}
+
+.header {
+  padding: 16px 10px 10px;
+  display: grid;
+  gap: 8px;
+}
+
+.titleRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 950;
+  font-family: var(--font-serif);
+}
+
+.title {
+  font-size: 1.35rem;
+}
+
+.subtitle {
+  color: rgba(var(--ink-rgb), 0.72);
+  max-width: 60ch;
+}
+
+.form {
+  display: grid;
+  gap: 12px;
+  padding: 12px 10px 6px;
+}
+
+.error {
+  border: 1px solid rgba(161, 63, 63, 0.26);
+  background: rgba(161, 63, 63, 0.1);
+  color: rgba(161, 63, 63, 0.95);
+  border-radius: 16px;
+  padding: 12px 12px;
+  font-weight: 750;
+}
+
+.foot {
+  padding: 14px 10px 0;
+  border-top: 1px solid rgba(var(--ink-rgb), 0.08);
+  margin-top: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.back {
+  color: rgba(var(--ink-rgb), 0.78);
+  font-weight: 750;
+}
+
+.back:hover {
+  color: rgba(var(--ink-rgb), 0.95);
+}
+

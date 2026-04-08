@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { PackageCheck, PackageOpen, Truck } from 'lucide-react'
 
@@ -7,24 +7,64 @@ import PageShell from '../components/layout/PageShell.jsx'
 import Card from '../components/ui/Card.jsx'
 import Button from '../components/ui/Button.jsx'
 import Input from '../components/ui/Input.jsx'
-import { useOrdersStore } from '../hooks/useOrdersStore.js'
+import Spinner from '../components/ui/Spinner.jsx'
+import EmptyState from '../components/ui/EmptyState.jsx'
+import { fetchOrder } from '../services/ordersApi.js'
 import { formatINR } from '../utils/currency.js'
 import { useDocumentTitle } from '../hooks/useDocumentTitle.js'
 
-function getTimeline(createdAtIso) {
-  const createdAt = new Date(createdAtIso).getTime()
-  const now = Date.now()
-  const mins = Math.max(0, (now - createdAt) / 60000)
+function normalizeStatus(value) {
+  const status = String(value ?? '').trim()
+  if (!status) return 'Pending'
 
-  const checkpoints = [
-    { label: 'Order placed', at: 0, icon: <PackageOpen size={18} /> },
-    { label: 'Packed', at: 2, icon: <PackageCheck size={18} /> },
-    { label: 'Dispatched', at: 4, icon: <Truck size={18} /> },
-    { label: 'Out for delivery', at: 6, icon: <Truck size={18} /> },
-    { label: 'Delivered', at: 8, icon: <PackageCheck size={18} /> },
+  const allowed = new Set(['Pending', 'Processing', 'Shipped', 'Delivered'])
+  if (allowed.has(status)) return status
+
+  const normalized = status.charAt(0).toUpperCase() + status.slice(1).toLowerCase()
+  if (allowed.has(normalized)) return normalized
+
+  return 'Pending'
+}
+
+function getTimeline(statusValue) {
+  const status = normalizeStatus(statusValue)
+  const isDelivered = status === 'Delivered'
+
+  const steps = [
+    { key: 'Pending', label: 'Order placed', icon: <PackageOpen size={18} /> },
+    { key: 'Processing', label: 'Processing', icon: <PackageCheck size={18} /> },
+    { key: 'Shipped', label: 'Shipped', icon: <Truck size={18} /> },
+    { key: 'Delivered', label: 'Delivered', icon: <PackageCheck size={18} /> },
   ]
 
-  return checkpoints.map((c) => ({ ...c, done: mins >= c.at }))
+  const currentIndex = Math.max(0, steps.findIndex((s) => s.key === status))
+
+  return steps.map((s, index) => ({
+    ...s,
+    done: isDelivered ? true : index < currentIndex,
+    current: !isDelivered && index === currentIndex,
+  }))
+}
+
+const RECENTS_KEY = 'manor:recent-orders:v1'
+
+function readRecents() {
+  try {
+    const raw = window.localStorage.getItem(RECENTS_KEY)
+    if (!raw) return []
+    const parsed = JSON.parse(raw)
+    return Array.isArray(parsed) ? parsed : []
+  } catch {
+    return []
+  }
+}
+
+function writeRecents(next) {
+  try {
+    window.localStorage.setItem(RECENTS_KEY, JSON.stringify(next))
+  } catch {
+    // ignore
+  }
 }
 
 export default function TrackOrderPage() {
@@ -35,25 +75,50 @@ export default function TrackOrderPage() {
 
   const [orderId, setOrderId] = useState(initial)
   const [selectedId, setSelectedId] = useState(initial)
-  const [, setTick] = useState(0)
+  const [order, setOrder] = useState(null)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+  const [recents, setRecents] = useState(() => readRecents())
 
-  const orders = useOrdersStore((s) => s.orders)
-  const getOrderById = useOrdersStore((s) => s.getOrderById)
-
-  const order = useMemo(() => getOrderById(selectedId), [getOrderById, selectedId])
-  // `tick` triggers re-render so timeline progresses in the UI.
-  const timeline = order ? getTimeline(order.createdAt) : []
+  const timeline = order ? getTimeline(order.status) : []
 
   useEffect(() => {
     if (!initial) return
-    setSelectedId(initial)
+    const next = initial.trim().toUpperCase()
+    setSelectedId(next)
+    setOrderId(next)
   }, [initial])
 
-  useEffect(() => {
-    if (!order) return
-    const id = window.setInterval(() => setTick((t) => t + 1), 10_000)
-    return () => window.clearInterval(id)
-  }, [order])
+  const load = useCallback(async (id) => {
+    const key = String(id ?? '').trim().toUpperCase()
+    if (!key) {
+      setOrder(null)
+      setError('')
+      return
+    }
+
+    setLoading(true)
+    setError('')
+    try {
+      const nextOrder = await fetchOrder(key)
+      setOrder(nextOrder)
+      if (nextOrder?.id) {
+        setRecents((prev) => {
+          const nextRecents = [
+            { id: nextOrder.id, total: nextOrder.summary?.total ?? 0 },
+            ...(prev ?? []).filter((r) => r?.id !== nextOrder.id),
+          ].slice(0, 6)
+          writeRecents(nextRecents)
+          return nextRecents
+        })
+      }
+    } catch (err) {
+      setOrder(null)
+      setError(err?.message || 'Unable to load order')
+    } finally {
+      setLoading(false)
+    }
+  }, [])
 
   function search() {
     const id = orderId.trim().toUpperCase()
@@ -62,7 +127,19 @@ export default function TrackOrderPage() {
     if (id) next.set('orderId', id)
     else next.delete('orderId')
     setParams(next, { replace: true })
+    load(id)
   }
+
+  useEffect(() => {
+    if (!selectedId) return
+    load(selectedId)
+  }, [load, selectedId])
+
+  useEffect(() => {
+    if (!order?.id) return
+    const id = window.setInterval(() => load(order.id), 10_000)
+    return () => window.clearInterval(id)
+  }, [load, order?.id])
 
   const actions = (
     <div className={styles.actions}>
@@ -78,7 +155,7 @@ export default function TrackOrderPage() {
             if (e.key === 'Enter') search()
           }}
         />
-        <Button variant="secondary" onClick={search}>
+        <Button variant="secondary" onClick={search} loading={loading}>
           Track
         </Button>
       </div>
@@ -88,20 +165,35 @@ export default function TrackOrderPage() {
   return (
     <PageShell
       title="Track order"
-      subtitle="Use your Order ID to view live status. This demo updates quickly so you can see the full experience."
+      subtitle="Use your Order ID to view the current status. (Demo) Update status in Admin → Orders to see the timeline change."
       actions={actions}
     >
-      {order ? (
+      {loading ? (
+        <Card className={styles.empty}>
+          <div className={styles.loadingRow}>
+            <Spinner size={18} />
+            <div>
+              <div className={styles.emptyTitle}>Loading...</div>
+              <div className={styles.emptyText}>Fetching your order status.</div>
+            </div>
+          </div>
+        </Card>
+      ) : order ? (
         <div className={styles.layout}>
           <Card className={styles.card}>
             <div className={styles.cardTitle}>Status</div>
             <div className={styles.timeline}>
               {timeline.map((t) => (
-                <div key={t.label} className={`${styles.step} ${t.done ? styles.stepDone : ''}`}>
+                <div
+                  key={t.key}
+                  className={`${styles.step} ${t.done ? styles.stepDone : ''} ${t.current ? styles.stepCurrent : ''}`}
+                >
                   <div className={styles.icon}>{t.icon}</div>
                   <div>
                     <div className={styles.stepLabel}>{t.label}</div>
-                    <div className={styles.stepTime}>{t.done ? 'Completed' : 'Pending'}</div>
+                    <div className={styles.stepTime}>
+                      {t.done ? 'Completed' : t.current ? 'In progress' : 'Pending'}
+                    </div>
                   </div>
                 </div>
               ))}
@@ -114,6 +206,10 @@ export default function TrackOrderPage() {
               <div className={styles.metaRow}>
                 <span className={styles.label}>Order ID</span>
                 <span className={styles.value}>{order.id}</span>
+              </div>
+              <div className={styles.metaRow}>
+                <span className={styles.label}>Status</span>
+                <span className={styles.value}>{normalizeStatus(order.status)}</span>
               </div>
               <div className={styles.metaRow}>
                 <span className={styles.label}>Total</span>
@@ -141,25 +237,33 @@ export default function TrackOrderPage() {
           </Card>
         </div>
       ) : (
-        <Card className={styles.empty}>
-          <div className={styles.emptyTitle}>No order found</div>
-          <div className={styles.emptyText}>
-            Enter an Order ID (example: <span className={styles.mono}>MANOR-AB12CD</span>) or place a mock order
-            from checkout.
-          </div>
-          <Button to="/products" variant="secondary">
-            Shop products
-          </Button>
-        </Card>
+        <EmptyState
+          className={styles.empty}
+          title="No order found"
+          text={
+            error ? (
+              error
+            ) : (
+              <>
+                Enter an Order ID (example: <span className={styles.mono}>MANOR-AB12CD</span>) or place an order from checkout.
+              </>
+            )
+          }
+          action={
+            <Button to="/products" variant="secondary">
+              Shop products
+            </Button>
+          }
+        />
       )}
 
-      {orders.length ? (
+      {recents.length ? (
         <Card className={styles.history}>
           <div className={styles.cardTitle}>Recent orders (this device)</div>
           <div className={styles.historyList}>
-            {orders.slice(0, 6).map((o) => (
+            {recents.map((o) => (
               <button
-                key={o.internalId}
+                key={o.id}
                 type="button"
                 className={styles.historyRow}
                 onClick={() => {
@@ -168,10 +272,11 @@ export default function TrackOrderPage() {
                   const next = new URLSearchParams(params)
                   next.set('orderId', o.id)
                   setParams(next, { replace: true })
+                  load(o.id)
                 }}
               >
                 <span className={styles.historyId}>{o.id}</span>
-                <span className={styles.historyTotal}>{formatINR(o.summary?.total ?? 0)}</span>
+                <span className={styles.historyTotal}>{formatINR(o.total ?? 0)}</span>
               </button>
             ))}
           </div>

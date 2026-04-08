@@ -116,3 +116,9 @@
 .note {
   color: rgba(var(--ink-rgb), 0.7);
 }
+
+.loadingRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}

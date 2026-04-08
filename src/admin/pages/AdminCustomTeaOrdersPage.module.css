@@ -1,0 +1,163 @@
+.page {
+  display: grid;
+  gap: 14px;
+}
+
+.header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.title {
+  font-weight: 950;
+  font-family: var(--font-serif);
+  font-size: 1.5rem;
+}
+
+.subtitle {
+  color: rgba(var(--ink-rgb), 0.72);
+  margin-top: 4px;
+  max-width: 75ch;
+}
+
+.controls {
+  padding: 14px;
+  border-radius: var(--radius-lg);
+  display: grid;
+  gap: 12px;
+}
+
+.hint {
+  color: rgba(var(--ink-rgb), 0.68);
+  font-size: 0.92rem;
+}
+
+.mono {
+  font-family: var(--font-mono);
+  font-weight: 900;
+}
+
+.customerName {
+  font-weight: 900;
+}
+
+.customerMeta {
+  color: rgba(var(--ink-rgb), 0.65);
+  font-size: 0.92rem;
+  margin-top: 2px;
+}
+
+.blendTitle {
+  font-weight: 900;
+}
+
+.blendMeta {
+  color: rgba(var(--ink-rgb), 0.66);
+  font-size: 0.92rem;
+  margin-top: 2px;
+}
+
+.details {
+  display: grid;
+  gap: 14px;
+}
+
+.detailGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+.detailBlock {
+  padding: 12px;
+  border-radius: var(--radius-lg);
+  border: 1px solid rgba(var(--ink-rgb), 0.1);
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.detailLabel {
+  color: rgba(var(--ink-rgb), 0.65);
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 0.78rem;
+}
+
+.detailValue {
+  font-weight: 950;
+  margin-top: 6px;
+}
+
+.section {
+  border-radius: var(--radius-lg);
+  border: 1px solid rgba(var(--ink-rgb), 0.1);
+  background: rgba(255, 255, 255, 0.7);
+  overflow: hidden;
+}
+
+.sectionTitle {
+  padding: 12px 14px;
+  border-bottom: 1px solid rgba(var(--ink-rgb), 0.08);
+  font-weight: 950;
+  font-family: var(--font-serif);
+}
+
+.sectionBody {
+  padding: 12px 14px;
+  display: grid;
+  gap: 10px;
+}
+
+.kv {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.k {
+  color: rgba(var(--ink-rgb), 0.65);
+  font-weight: 850;
+}
+
+.v {
+  font-weight: 900;
+}
+
+.note {
+  padding-top: 10px;
+  border-top: 1px solid rgba(var(--ink-rgb), 0.08);
+}
+
+.skeletonTable {
+  display: grid;
+  gap: 10px;
+}
+
+.skeletonRow {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr 1.3fr 0.8fr 0.7fr 0.6fr;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 16px;
+  border: 1px solid rgba(var(--ink-rgb), 0.1);
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.skeletonCell {
+  height: 12px;
+}
+
+.skeletonCellWide {
+  height: 12px;
+  width: 80%;
+}
+
+@media (min-width: 980px) {
+  .detailGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}

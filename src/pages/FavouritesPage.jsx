@@ -6,7 +6,7 @@ import Card from '../components/ui/Card.jsx'
 import Button from '../components/ui/Button.jsx'
 import ProductCard from '../components/commerce/ProductCard.jsx'
 import { useWishlistStore } from '../hooks/useWishlistStore.js'
-import { getProductById } from '../services/catalogService.js'
+import { useProductsStore } from '../hooks/useProductsStore.js'
 import { useDocumentTitle } from '../hooks/useDocumentTitle.js'
 
 export default function FavouritesPage() {
@@ -15,7 +15,11 @@ export default function FavouritesPage() {
   const ids = useWishlistStore((s) => s.ids)
   const clear = useWishlistStore((s) => s.clear)
 
-  const products = useMemo(() => ids.map((id) => getProductById(id)).filter(Boolean), [ids])
+  const allProducts = useProductsStore((s) => s.products)
+  const products = useMemo(
+    () => ids.map((id) => (allProducts ?? []).find((p) => p.id === id)).filter(Boolean),
+    [allProducts, ids],
+  )
 
   if (!products.length) {
     return (
@@ -55,4 +59,3 @@ export default function FavouritesPage() {
     </PageShell>
   )
 }
-

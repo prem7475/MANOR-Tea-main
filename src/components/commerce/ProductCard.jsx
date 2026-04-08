@@ -11,6 +11,7 @@ import { formatINR } from '../../utils/currency.js'
 import { useCartStore } from '../../hooks/useCartStore.js'
 import { useWishlistStore } from '../../hooks/useWishlistStore.js'
 import { useUiStore } from '../../hooks/useUiStore.js'
+import { trackEvent } from '../../utils/analytics.js'
 
 export default function ProductCard({ product }) {
   const addProduct = useCartStore((s) => s.addProduct)
@@ -18,6 +19,7 @@ export default function ProductCard({ product }) {
   const toggleWishlist = useWishlistStore((s) => s.toggle)
   const notify = useUiStore((s) => s.notify)
 
+  const productPath = `/products/${product.slug ?? product.id}`
   const isWished = wishlistIds.includes(product.id)
   const discountPct = useMemo(() => {
     if (!product.compareAtPrice || product.compareAtPrice <= product.price) return null
@@ -25,7 +27,13 @@ export default function ProductCard({ product }) {
   }, [product.compareAtPrice, product.price])
 
   function onAdd() {
-    addProduct(product.id, 1)
+    addProduct(product, 1)
+    trackEvent('add_to_cart', {
+      item_id: product.id,
+      item_name: product.name,
+      price: product.price,
+      currency: 'INR',
+    })
     notify({ title: 'Added to cart', message: product.name, intent: 'success' })
   }
 
@@ -41,7 +49,7 @@ export default function ProductCard({ product }) {
   return (
     <Card as="article" className={styles.card}>
       <div className={styles.media}>
-        <Link to={`/products/${product.id}`} className={styles.mediaLink}>
+        <Link to={productPath} className={styles.mediaLink}>
           <img className={styles.image} src={product.image} alt={product.name} loading="lazy" />
         </Link>
 
@@ -64,7 +72,7 @@ export default function ProductCard({ product }) {
 
       <div className={styles.body}>
         <div className={styles.top}>
-          <Link to={`/products/${product.id}`} className={styles.title}>
+          <Link to={productPath} className={styles.title}>
             {product.name}
           </Link>
           {product.subtitle && <div className={styles.subtitle}>{product.subtitle}</div>}
@@ -87,7 +95,7 @@ export default function ProductCard({ product }) {
         </div>
 
         <div className={styles.actions}>
-          <Button to={`/products/${product.id}`} variant="secondary" fullWidth className={styles.viewAction}>
+          <Button to={productPath} variant="secondary" fullWidth className={styles.viewAction}>
             View
           </Button>
           <Button

@@ -7,6 +7,7 @@ import IconButton from '../ui/IconButton.jsx'
 import styles from './Header.module.css'
 import { useCartStore } from '../../hooks/useCartStore.js'
 import { useWishlistStore } from '../../hooks/useWishlistStore.js'
+import { prefetchByPath } from '../../utils/routePrefetch.js'
 
 const navItems = [
   { to: '/customize-tea', label: 'Customize Tea', tone: 'accent' },
@@ -73,7 +74,12 @@ export default function Header() {
 
         <nav className={styles.nav} aria-label="Primary navigation">
           {navItems.map((i) => (
-            <NavLink key={i.to} to={i.to} className={linkClassName(i.tone)}>
+            <NavLink
+              key={i.to}
+              to={i.to}
+              className={linkClassName(i.tone)}
+              onMouseEnter={() => prefetchByPath(i.to)}
+            >
               {i.label}
             </NavLink>
           ))}
@@ -88,14 +94,14 @@ export default function Header() {
             <Search size={18} />
           </IconButton>
 
-          <Link className={styles.iconLink} to="/favourites" aria-label="Favourites">
+          <Link className={styles.iconLink} to="/favourites" aria-label="Favourites" onMouseEnter={() => prefetchByPath('/favourites')}>
             <IconButton label="Favourites" variant="soft">
               <Heart size={18} />
             </IconButton>
             {wishlistIds.length > 0 && <span className={styles.badge}>{wishlistIds.length}</span>}
           </Link>
 
-          <Link className={styles.iconLink} to="/cart" aria-label="Cart">
+          <Link className={styles.iconLink} to="/cart" aria-label="Cart" onMouseEnter={() => prefetchByPath('/cart')}>
             <IconButton label="Cart" variant="soft">
               <ShoppingBag size={18} />
             </IconButton>

@@ -1,0 +1,18 @@
+.card {
+  padding: 18px;
+  border-radius: var(--radius-lg);
+  display: grid;
+  gap: 10px;
+}
+
+.title {
+  font-weight: 950;
+  font-family: var(--font-serif);
+  font-size: 1.35rem;
+}
+
+.text {
+  color: rgba(var(--ink-rgb), 0.72);
+  max-width: 75ch;
+}
+

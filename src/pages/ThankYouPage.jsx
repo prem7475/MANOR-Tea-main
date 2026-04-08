@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { CheckCircle2, Truck } from 'lucide-react'
 
@@ -6,7 +6,9 @@ import styles from './ThankYouPage.module.css'
 import PageShell from '../components/layout/PageShell.jsx'
 import Card from '../components/ui/Card.jsx'
 import Button from '../components/ui/Button.jsx'
-import { useOrdersStore } from '../hooks/useOrdersStore.js'
+import Spinner from '../components/ui/Spinner.jsx'
+import EmptyState from '../components/ui/EmptyState.jsx'
+import { fetchOrder } from '../services/ordersApi.js'
 import { formatINR } from '../utils/currency.js'
 import { useDocumentTitle } from '../hooks/useDocumentTitle.js'
 
@@ -15,10 +17,35 @@ export default function ThankYouPage() {
 
   const [params] = useSearchParams()
   const orderId = params.get('orderId')
-  const lastOrderId = useOrdersStore((s) => s.lastOrderId)
-  const getOrderById = useOrdersStore((s) => s.getOrderById)
+  const [order, setOrder] = useState(null)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
 
-  const order = useMemo(() => getOrderById(orderId || lastOrderId), [getOrderById, lastOrderId, orderId])
+  useEffect(() => {
+    if (!orderId) return
+    let cancelled = false
+
+    setLoading(true)
+    setError('')
+
+    fetchOrder(orderId)
+      .then((o) => {
+        if (cancelled) return
+        setOrder(o)
+      })
+      .catch((err) => {
+        if (cancelled) return
+        setError(err?.message || 'Unable to load order')
+      })
+      .finally(() => {
+        if (cancelled) return
+        setLoading(false)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [orderId])
 
   return (
     <PageShell
@@ -39,7 +66,14 @@ export default function ThankYouPage() {
           </div>
         </div>
 
-        {order ? (
+        {loading ? (
+          <div className={styles.body}>
+            <div className={styles.loadingRow}>
+              <Spinner size={18} />
+              <div className={styles.note}>Loading order...</div>
+            </div>
+          </div>
+        ) : order ? (
           <div className={styles.body}>
             <div className={styles.meta}>
               <div className={styles.metaRow}>
@@ -82,14 +116,18 @@ export default function ThankYouPage() {
           </div>
         ) : (
           <div className={styles.body}>
-            <div className={styles.note}>Could not find an order. Try the Track Order page.</div>
-            <Button to="/track-order" variant="secondary">
-              Track an order
-            </Button>
+            <EmptyState
+              title="Order not found"
+              text={error || 'Could not find an order. Try the Track Order page.'}
+              action={
+                <Button to="/track-order" variant="secondary">
+                  Track an order
+                </Button>
+              }
+            />
           </div>
         )}
       </Card>
     </PageShell>
   )
 }
-

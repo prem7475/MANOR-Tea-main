@@ -84,7 +84,7 @@
   font-weight: 650;
   border: 1px solid transparent;
   color: rgba(var(--ink-rgb), 0.85);
-  transition: background-color 160ms ease, color 160ms ease;
+  transition: background-color 160ms ease, color 160ms ease, transform 160ms ease;
   white-space: nowrap;
 }
 
@@ -150,6 +150,7 @@
 .searchPanel {
   border-top: 1px solid rgba(var(--ink-rgb), 0.08);
   background: rgba(255, 249, 242, 0.92);
+  animation: fadeDown 220ms ease both;
 }
 
 .searchForm {
@@ -229,6 +230,17 @@
   }
 }
 
+@keyframes fadeDown {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 @media (min-width: 900px) {
   .nav {
     display: flex;
@@ -248,6 +260,18 @@
 
   .desktopCta {
     display: inline-flex;
+  }
+}
+
+@media (hover: hover) {
+  .navLink:hover {
+    transform: translateY(-1px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .searchPanel {
+    animation: none;
   }
 }
 

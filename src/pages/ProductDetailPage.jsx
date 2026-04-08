@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { Heart, ShoppingBag, Zap } from 'lucide-react'
 
@@ -8,17 +8,51 @@ import Card from '../components/ui/Card.jsx'
 import Badge from '../components/ui/Badge.jsx'
 import Button from '../components/ui/Button.jsx'
 import ProductCard from '../components/commerce/ProductCard.jsx'
+import Skeleton from '../components/ui/Skeleton.jsx'
+import Input from '../components/ui/Input.jsx'
 import { formatINR } from '../utils/currency.js'
-import { getAllProducts, getProductById } from '../services/catalogService.js'
+import { useProductsStore } from '../hooks/useProductsStore.js'
 import { useCartStore } from '../hooks/useCartStore.js'
 import { useWishlistStore } from '../hooks/useWishlistStore.js'
 import { useUiStore } from '../hooks/useUiStore.js'
 import { useDocumentTitle } from '../hooks/useDocumentTitle.js'
+import { trackEvent } from '../utils/analytics.js'
+
+const RECENTS_KEY = 'manor:recently-viewed:v1'
+
+function readRecents() {
+  try {
+    const raw = window.localStorage.getItem(RECENTS_KEY)
+    if (!raw) return []
+    const parsed = JSON.parse(raw)
+    return Array.isArray(parsed) ? parsed : []
+  } catch {
+    return []
+  }
+}
+
+function writeRecents(next) {
+  try {
+    window.localStorage.setItem(RECENTS_KEY, JSON.stringify(next))
+  } catch {
+    // ignore
+  }
+}
 
 export default function ProductDetailPage() {
-  const { productId } = useParams()
+  const { productId: slugOrId } = useParams()
   const navigate = useNavigate()
-  const product = getProductById(productId)
+  const products = useProductsStore((s) => s.products)
+  const status = useProductsStore((s) => s.status)
+  const error = useProductsStore((s) => s.error)
+
+  const product = useMemo(
+    () =>
+      products.find((p) => p.slug === slugOrId) ||
+      products.find((p) => p.id === slugOrId) ||
+      null,
+    [products, slugOrId],
+  )
 
   useDocumentTitle(product?.name ?? 'Product')
 
@@ -28,34 +62,111 @@ export default function ProductDetailPage() {
   const notify = useUiStore((s) => s.notify)
 
   const isWished = product ? wishlistIds.includes(product.id) : false
-  const [activeImage, setActiveImage] = useState(product?.images?.[0] ?? product?.image)
+  const initialImage = product?.images?.[0] ?? product?.image
+  const [activeImage, setActiveImage] = useState(initialImage)
+  const [relatedQuery, setRelatedQuery] = useState('')
+  const [recentIds, setRecentIds] = useState(() => readRecents())
+
+  useEffect(() => {
+    setActiveImage(initialImage)
+  }, [initialImage])
+
+  useEffect(() => {
+    setRelatedQuery('')
+  }, [product?.id])
+
+  useEffect(() => {
+    if (!product?.id) return
+    setRecentIds((prev) => {
+      const next = [product.id, ...(prev ?? []).filter((id) => id !== product.id)].slice(0, 8)
+      writeRecents(next)
+      return next
+    })
+  }, [product?.id])
+
+  useEffect(() => {
+    if (!product?.slug) return
+    if (!slugOrId) return
+    if (slugOrId === product.slug) return
+    navigate(`/products/${product.slug}`, { replace: true })
+  }, [navigate, product?.slug, slugOrId])
+
+  const relatedBase = useMemo(() => {
+    if (!product) return []
+    const tags = new Set(product.tags ?? [])
+    const scored = products
+      .filter((p) => p.id !== product.id)
+      .map((p) => {
+        let score = 0
+        if (p.category === product.category) score += 3
+        if (product.groupId && p.groupId === product.groupId) score += 4
+        if (tags.size && Array.isArray(p.tags)) {
+          const shared = p.tags.filter((t) => tags.has(t)).length
+          score += shared * 2
+        }
+        return { product: p, score }
+      })
+
+    const primary = scored.filter((row) => row.score > 0)
+    const base = primary.length ? primary : scored
+    return base
+      .sort(
+        (a, b) =>
+          b.score - a.score || (b.product.rating ?? 0) - (a.product.rating ?? 0) || b.product.price - a.product.price,
+      )
+      .map((row) => row.product)
+  }, [product, products])
 
   const related = useMemo(() => {
-    if (!product) return []
-    return getAllProducts()
-      .filter((p) => p.id !== product.id && p.category === product.category)
-      .slice(0, 4)
-  }, [product])
+    const q = relatedQuery.trim().toLowerCase()
+    const list = relatedBase.slice(0, 10)
+    if (!q) return list.slice(0, 6)
+    return list.filter((p) => {
+      const hay = `${p.name} ${p.subtitle ?? ''} ${p.description ?? ''} ${(p.tags ?? []).join(' ')}`.toLowerCase()
+      return hay.includes(q)
+    })
+  }, [relatedBase, relatedQuery])
 
   const variants = useMemo(() => {
     if (!product?.groupId) return []
-    return getAllProducts()
+    return products
       .filter((p) => p.groupId && p.groupId === product.groupId)
       .sort((a, b) => (a.attributes?.weightGrams ?? 0) - (b.attributes?.weightGrams ?? 0))
-  }, [product])
+  }, [product, products])
 
   const reviews = useMemo(() => getMockReviews(product), [product])
 
+  const recentProducts = useMemo(() => {
+    if (!recentIds.length) return []
+    const map = new Map(products.map((p) => [p.id, p]))
+    return recentIds.map((id) => map.get(id)).filter(Boolean)
+  }, [products, recentIds])
+
   if (!product) {
+    const isLoading = status === 'loading'
     return (
       <Container className={styles.notFound}>
-        <Card className={styles.notFoundCard}>
-          <h1 className={styles.notFoundTitle}>Product not found</h1>
-          <p className={styles.notFoundText}>The item may have been removed or the link is incorrect.</p>
-          <Button to="/products" variant="secondary">
-            Back to products
-          </Button>
-        </Card>
+        {isLoading ? (
+          <div className={styles.skeletonLayout} aria-label="Loading product">
+            <Skeleton className={styles.skeletonMedia} />
+            <div className={styles.skeletonInfo}>
+              <Skeleton className={styles.skeletonLine} />
+              <Skeleton className={styles.skeletonLineShort} />
+              <Skeleton className={styles.skeletonLine} />
+              <Skeleton className={styles.skeletonAction} />
+            </div>
+          </div>
+        ) : (
+          <Card className={styles.notFoundCard}>
+            <h1 className={styles.notFoundTitle}>Product not found</h1>
+            <p className={styles.notFoundText}>
+              {error ? String(error) : 'The item may have been removed or the link is incorrect.'}
+            </p>
+            <Button to="/products" variant="secondary">
+              Back to products
+            </Button>
+          </Card>
+        )}
       </Container>
     )
   }
@@ -66,12 +177,24 @@ export default function ProductDetailPage() {
       : null
 
   function onAdd() {
-    addProduct(product.id, 1)
+    addProduct(product, 1)
+    trackEvent('add_to_cart', {
+      item_id: product.id,
+      item_name: product.name,
+      price: product.price,
+      currency: 'INR',
+    })
     notify({ title: 'Added to cart', message: product.name, intent: 'success' })
   }
 
   function onBuyNow() {
-    addProduct(product.id, 1)
+    addProduct(product, 1)
+    trackEvent('begin_checkout', {
+      item_id: product.id,
+      item_name: product.name,
+      price: product.price,
+      currency: 'INR',
+    })
     notify({ title: 'Ready to checkout', message: 'Proceeding to checkout.', intent: 'info' })
     navigate('/checkout')
   }
@@ -142,7 +265,7 @@ export default function ProductDetailPage() {
                 {variants.map((v) => (
                   <Link
                     key={v.id}
-                    to={`/products/${v.id}`}
+                    to={`/products/${v.slug ?? v.id}`}
                     className={`${styles.variant} ${v.id === product.id ? styles.variantActive : ''}`}
                     role="listitem"
                     aria-current={v.id === product.id ? 'true' : undefined}
@@ -208,16 +331,62 @@ export default function ProductDetailPage() {
           ) : null}
         </Card>
 
-        {related.length ? (
+        {relatedBase.length ? (
           <div className={styles.related}>
             <div className={styles.relatedHeader}>
-              <h2 className={styles.relatedTitle}>You may also like</h2>
-              <p className={styles.relatedDesc}>More premium choices with a similar feel.</p>
+              <div>
+                <h2 className={styles.relatedTitle}>You may also like</h2>
+                <p className={styles.relatedDesc}>More premium choices with a similar feel.</p>
+              </div>
+              <div className={styles.relatedSearch}>
+                <Input
+                  label="Search similar"
+                  name="related"
+                  value={relatedQuery}
+                  onChange={(e) => setRelatedQuery(e.target.value)}
+                  placeholder="Search within similar teas..."
+                />
+                <Link
+                  className={styles.relatedLink}
+                  to={`/products${relatedQuery.trim() ? `?q=${encodeURIComponent(relatedQuery.trim())}` : ''}`}
+                >
+                  Search all
+                </Link>
+              </div>
+            </div>
+            {related.length ? (
+              <div className={styles.relatedGrid}>
+                {related.map((p) => (
+                  <ProductCard key={p.id} product={p} />
+                ))}
+              </div>
+            ) : (
+              <Card className={styles.relatedEmpty}>
+                <div className={styles.relatedEmptyTitle}>No similar matches</div>
+                <div className={styles.relatedEmptyText}>Try a different keyword or browse all products.</div>
+                <Button variant="secondary" to={`/products${relatedQuery.trim() ? `?q=${encodeURIComponent(relatedQuery.trim())}` : ''}`}>
+                  Search all products
+                </Button>
+              </Card>
+            )}
+          </div>
+        ) : null}
+
+        {recentProducts.length > 1 ? (
+          <div className={styles.recent}>
+            <div className={styles.relatedHeader}>
+              <div>
+                <h2 className={styles.relatedTitle}>Recently viewed</h2>
+                <p className={styles.relatedDesc}>Pick up where you left off.</p>
+              </div>
             </div>
             <div className={styles.relatedGrid}>
-              {related.map((p) => (
-                <ProductCard key={p.id} product={p} />
-              ))}
+              {recentProducts
+                .filter((p) => p.id !== product.id)
+                .slice(0, 4)
+                .map((p) => (
+                  <ProductCard key={p.id} product={p} />
+                ))}
             </div>
           </div>
         ) : null}

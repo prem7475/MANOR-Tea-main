@@ -64,6 +64,18 @@ export default function Footer() {
             <Link className={styles.link} to="/contact">
               Contact
             </Link>
+            <Link className={styles.link} to="/terms">
+              Terms
+            </Link>
+            <Link className={styles.link} to="/privacy">
+              Privacy
+            </Link>
+            <Link className={styles.link} to="/refunds">
+              Refunds
+            </Link>
+            <Link className={styles.link} to="/shipping">
+              Shipping
+            </Link>
           </div>
         </div>
       </Container>

@@ -5,13 +5,14 @@ import PageShell from '../components/layout/PageShell.jsx'
 import ProductCard from '../components/commerce/ProductCard.jsx'
 import Card from '../components/ui/Card.jsx'
 import Button from '../components/ui/Button.jsx'
-import { getProductsByCategory } from '../services/catalogService.js'
+import { useProductsStore } from '../hooks/useProductsStore.js'
 import { useDocumentTitle } from '../hooks/useDocumentTitle.js'
 
 export default function GiftsPage() {
   useDocumentTitle('Gifts')
 
-  const gifts = useMemo(() => getProductsByCategory('gift'), [])
+  const products = useProductsStore((s) => s.products)
+  const gifts = useMemo(() => (products ?? []).filter((p) => p.category === 'gift'), [products])
 
   return (
     <PageShell

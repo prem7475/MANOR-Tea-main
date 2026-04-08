@@ -8,19 +8,45 @@ import CartItem from '../components/commerce/CartItem.jsx'
 import OrderSummary from '../components/commerce/OrderSummary.jsx'
 import ProductCard from '../components/commerce/ProductCard.jsx'
 import { useCartStore } from '../hooks/useCartStore.js'
-import { getAllProducts } from '../services/catalogService.js'
+import { useProductsStore } from '../hooks/useProductsStore.js'
 import { useDocumentTitle } from '../hooks/useDocumentTitle.js'
+import Skeleton from '../components/ui/Skeleton.jsx'
+import { trackEvent } from '../utils/analytics.js'
 
 export default function CartPage() {
   useDocumentTitle('Cart')
 
   const navigate = useNavigate()
   const items = useCartStore((s) => s.items)
+  const hydrated = useCartStore((s) => s.hydrated)
+  const products = useProductsStore((s) => s.products)
 
   const upsell = useMemo(() => {
-    const all = getAllProducts()
+    const all = products ?? []
     return all.filter((p) => p.inStock && p.category === 'tea').slice(0, 2)
-  }, [])
+  }, [products])
+
+  if (!hydrated) {
+    return (
+      <PageShell
+        title="Your cart"
+        subtitle="Loading your items..."
+        actions={<Button to="/products" variant="secondary">Browse products</Button>}
+      >
+        <div className={styles.skeletonGrid}>
+          {Array.from({ length: 3 }).map((_, idx) => (
+            <div key={`cart-skeleton-${idx}`} className={styles.skeletonRow}>
+              <Skeleton className={styles.skeletonThumb} />
+              <div className={styles.skeletonBody}>
+                <Skeleton className={styles.skeletonLine} />
+                <Skeleton className={styles.skeletonLineShort} />
+              </div>
+            </div>
+          ))}
+        </div>
+      </PageShell>
+    )
+  }
 
   if (!items.length) {
     return (
@@ -58,7 +84,13 @@ export default function CartPage() {
           ))}
         </div>
         <div className={styles.summary}>
-          <OrderSummary cta="Proceed to checkout" onCta={() => navigate('/checkout')} />
+          <OrderSummary
+            cta="Proceed to checkout"
+            onCta={() => {
+              trackEvent('begin_checkout', { currency: 'INR' })
+              navigate('/checkout')
+            }}
+          />
         </div>
       </div>
 
@@ -76,4 +108,3 @@ export default function CartPage() {
     </PageShell>
   )
 }
-

@@ -54,6 +54,50 @@
   font-weight: 750;
 }
 
+.filterRow {
+  display: grid;
+  gap: 10px;
+}
+
+.price {
+  display: grid;
+  gap: 8px;
+}
+
+.priceRow {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  align-items: end;
+}
+
+.tags {
+  display: grid;
+  gap: 8px;
+}
+
+.tagRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tag {
+  border: 1px solid rgba(var(--ink-rgb), 0.12);
+  background: rgba(255, 255, 255, 0.75);
+  border-radius: 999px;
+  padding: 8px 12px;
+  font-weight: 750;
+  color: rgba(var(--ink-rgb), 0.78);
+  cursor: pointer;
+}
+
+.tagActive {
+  background: rgba(var(--accent-rgb), 0.16);
+  color: rgba(var(--ink-rgb), 0.95);
+  border-color: rgba(var(--accent-rgb), 0.35);
+}
+
 .select {
   border-radius: 14px;
   border: 1px solid rgba(var(--ink-rgb), 0.14);
@@ -80,24 +124,38 @@
   gap: 12px;
 }
 
-.empty {
-  border-radius: var(--radius-lg);
-  border: 1px solid rgba(var(--ink-rgb), 0.12);
+.skeletonCard {
+  border-radius: 20px;
+  padding: 14px;
+  border: 1px solid rgba(var(--ink-rgb), 0.08);
   background: rgba(255, 255, 255, 0.75);
-  padding: 18px;
+  display: grid;
+  gap: 12px;
+}
+
+.skeletonMedia {
+  height: 160px;
+}
+
+.skeletonBody {
   display: grid;
   gap: 10px;
-  max-width: 680px;
 }
 
-.emptyTitle {
-  font-weight: 950;
-  font-size: 1.25rem;
+.skeletonLine {
+  height: 12px;
 }
 
-.emptyText {
-  color: rgba(var(--ink-rgb), 0.72);
+.skeletonLineShort {
+  height: 12px;
+  width: 60%;
 }
+
+.skeletonAction {
+  height: 36px;
+  width: 70%;
+}
+
 
 @media (min-width: 720px) {
   .grid {
@@ -113,5 +171,10 @@
 
   .filters {
     grid-template-columns: 1fr auto;
+  }
+
+  .filterRow {
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    align-items: end;
   }
 }

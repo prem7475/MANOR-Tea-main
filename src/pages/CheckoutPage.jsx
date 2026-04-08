@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import styles from './CheckoutPage.module.css'
@@ -8,10 +8,13 @@ import Button from '../components/ui/Button.jsx'
 import Input from '../components/ui/Input.jsx'
 import OrderSummary from '../components/commerce/OrderSummary.jsx'
 import { useCartStore } from '../hooks/useCartStore.js'
-import { useOrdersStore } from '../hooks/useOrdersStore.js'
+import { useSiteSettingsStore } from '../hooks/useSiteSettingsStore.js'
 import { useUiStore } from '../hooks/useUiStore.js'
+import { createOrder } from '../services/ordersApi.js'
+import { fetchPincode } from '../services/publicApi.js'
 import { isNonEmpty, isValidEmail } from '../utils/validation.js'
 import { useDocumentTitle } from '../hooks/useDocumentTitle.js'
+import { trackEvent } from '../utils/analytics.js'
 
 const paymentMethods = [
   { id: 'upi', label: 'UPI (Mock)', note: 'Instant, simple, secure UI.' },
@@ -24,12 +27,9 @@ export default function CheckoutPage() {
 
   const navigate = useNavigate()
   const items = useCartStore((s) => s.items)
-  const getSummary = useCartStore((s) => s.getSummary)
   const clearCart = useCartStore((s) => s.clearCart)
-  const createOrder = useOrdersStore((s) => s.createOrder)
   const notify = useUiStore((s) => s.notify)
-
-  const summary = getSummary()
+  const paymentToggles = useSiteSettingsStore((s) => s.payments)
 
   const [step, setStep] = useState(1)
   const [isPlacing, setIsPlacing] = useState(false)
@@ -50,6 +50,63 @@ export default function CheckoutPage() {
 
   const [payment, setPayment] = useState('upi')
   const [errors, setErrors] = useState({})
+  const [pincodeHint, setPincodeHint] = useState('')
+
+  const availablePaymentMethods = useMemo(
+    () => paymentMethods.filter((m) => Boolean(paymentToggles?.[m.id] ?? true)),
+    [paymentToggles],
+  )
+
+  useEffect(() => {
+    if (!availablePaymentMethods.length) {
+      setPayment('')
+      return
+    }
+
+    const stillAvailable = availablePaymentMethods.some((m) => m.id === payment)
+    if (!stillAvailable) setPayment(availablePaymentMethods[0].id)
+  }, [availablePaymentMethods, payment])
+
+  useEffect(() => {
+    const code = String(address.pincode ?? '').trim()
+    if (!code) {
+      setPincodeHint('')
+      return
+    }
+    if (!/^\d{6}$/.test(code)) {
+      setPincodeHint('Enter a valid 6-digit pincode')
+      return
+    }
+
+    let cancelled = false
+    setPincodeHint('Checking delivery availability…')
+
+    const handle = window.setTimeout(async () => {
+      try {
+        const data = await fetchPincode(code)
+        if (cancelled) return
+        if (!data?.ok) {
+          setPincodeHint('Pincode not serviceable')
+          return
+        }
+
+        setPincodeHint(`${data.city}, ${data.state}`)
+        setAddress((s) => ({
+          ...s,
+          city: s.city || data.city,
+          state: s.state || data.state,
+        }))
+      } catch (err) {
+        if (cancelled) return
+        setPincodeHint(err?.message || 'Pincode lookup failed')
+      }
+    }, 300)
+
+    return () => {
+      cancelled = true
+      window.clearTimeout(handle)
+    }
+  }, [address.pincode])
 
   if (!items.length) {
     return (
@@ -103,12 +160,45 @@ export default function CheckoutPage() {
 
     await new Promise((r) => window.setTimeout(r, 900))
 
-    const orderId = createOrder({
-      customer,
-      address,
-      payment: { method: payment, status: 'paid (mock)' },
-      items,
-      summary: { ...summary, offerCode: useCartStore.getState().offerCode ?? null },
+    let orderId = null
+    try {
+      orderId = await createOrder({
+        customer,
+        address,
+        payment: { method: payment },
+        items,
+        offerCode: useCartStore.getState().offerCode ?? '',
+      })
+    } catch (err) {
+      setIsPlacing(false)
+      notify({
+        title: 'Order failed',
+        message: err?.message || 'Please try again.',
+        intent: 'error',
+      })
+      return
+    }
+
+    if (!orderId) {
+      setIsPlacing(false)
+      notify({
+        title: 'Order failed',
+        message: 'No order ID returned. Please try again.',
+        intent: 'error',
+      })
+      return
+    }
+
+    trackEvent('purchase', {
+      transaction_id: orderId,
+      value: items.reduce((sum, i) => sum + i.unitPrice * i.quantity, 0),
+      currency: 'INR',
+      items: items.map((i) => ({
+        item_id: i.productId || i.lineId,
+        item_name: i.title,
+        quantity: i.quantity,
+        price: i.unitPrice,
+      })),
     })
 
     clearCart()
@@ -204,6 +294,7 @@ export default function CheckoutPage() {
                     onChange={(e) => setAddress((s) => ({ ...s, pincode: e.target.value }))}
                     error={errors.pincode}
                     placeholder="Pincode"
+                    hint={pincodeHint}
                   />
                 </div>
               </div>
@@ -219,29 +310,38 @@ export default function CheckoutPage() {
           {step === 2 && (
             <Card className={styles.card}>
               <div className={styles.cardTitle}>Payment</div>
-              <div className={styles.paymentList} role="radiogroup" aria-label="Payment method">
-                {paymentMethods.map((m) => (
-                  <label key={m.id} className={`${styles.payment} ${payment === m.id ? styles.paymentActive : ''}`}>
-                    <input
-                      type="radio"
-                      name="payment"
-                      value={m.id}
-                      checked={payment === m.id}
-                      onChange={() => setPayment(m.id)}
-                    />
-                    <div>
-                      <div className={styles.paymentLabel}>{m.label}</div>
-                      <div className={styles.paymentNote}>{m.note}</div>
-                    </div>
-                  </label>
-                ))}
-              </div>
+              {availablePaymentMethods.length ? (
+                <div className={styles.paymentList} role="radiogroup" aria-label="Payment method">
+                  {availablePaymentMethods.map((m) => (
+                    <label
+                      key={m.id}
+                      className={`${styles.payment} ${payment === m.id ? styles.paymentActive : ''}`}
+                    >
+                      <input
+                        type="radio"
+                        name="payment"
+                        value={m.id}
+                        checked={payment === m.id}
+                        onChange={() => setPayment(m.id)}
+                      />
+                      <div>
+                        <div className={styles.paymentLabel}>{m.label}</div>
+                        <div className={styles.paymentNote}>{m.note}</div>
+                      </div>
+                    </label>
+                  ))}
+                </div>
+              ) : (
+                <div className={styles.emptyText}>
+                  No payment methods are enabled right now. (Demo) Turn one on in Admin → Settings.
+                </div>
+              )}
 
               <div className={styles.navButtons}>
                 <Button variant="ghost" onClick={back}>
                   Back
                 </Button>
-                <Button variant="secondary" onClick={next}>
+                <Button variant="secondary" onClick={next} disabled={!availablePaymentMethods.length}>
                   Review order
                 </Button>
               </div>
@@ -270,7 +370,7 @@ export default function CheckoutPage() {
                 <div className={styles.reviewBlock}>
                   <div className={styles.reviewTitle}>Payment method</div>
                   <div className={styles.reviewText}>
-                    {paymentMethods.find((p) => p.id === payment)?.label ?? '—'}
+                    {availablePaymentMethods.find((p) => p.id === payment)?.label ?? '—'}
                   </div>
                   <div className={styles.reviewHint}>This is a mock payment UI for demo.</div>
                 </div>
@@ -280,7 +380,7 @@ export default function CheckoutPage() {
                 <Button variant="ghost" onClick={back}>
                   Back
                 </Button>
-                <Button onClick={placeOrder} loading={isPlacing}>
+                <Button onClick={placeOrder} loading={isPlacing} disabled={!payment}>
                   Pay & place order
                 </Button>
               </div>

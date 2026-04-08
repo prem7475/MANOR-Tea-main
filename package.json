@@ -6,13 +6,16 @@
   "scripts": {
     "dev": "vite",
     "start": "vite",
-    "build": "vite build",
+    "seo:build": "node scripts/generate-seo.mjs",
+    "build": "npm run seo:build && vite build",
     "lint": "eslint .",
     "preview": "vite preview"
   },
   "dependencies": {
     "framer-motion": "^12.23.24",
+    "jsonwebtoken": "^9.0.3",
     "lucide-react": "^0.548.0",
+    "mongoose": "^9.4.1",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-router-dom": "^7.7.1",

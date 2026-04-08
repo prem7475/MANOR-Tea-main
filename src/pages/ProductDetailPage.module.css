@@ -229,6 +229,23 @@
   margin-bottom: 12px;
 }
 
+.relatedSearch {
+  display: grid;
+  gap: 8px;
+  align-items: end;
+}
+
+.relatedLink {
+  font-weight: 850;
+  color: rgba(var(--ink-rgb), 0.85);
+  text-decoration: none;
+}
+
+.relatedLink:hover {
+  text-decoration: none;
+  color: rgba(var(--ink-rgb), 1);
+}
+
 .relatedTitle {
   margin: 0;
   font-size: 1.6rem;
@@ -243,6 +260,23 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 14px;
+}
+
+.relatedEmpty {
+  padding: 16px;
+  border-radius: var(--radius-lg);
+  display: grid;
+  gap: 10px;
+  max-width: 680px;
+}
+
+.relatedEmptyTitle {
+  font-weight: 950;
+  font-size: 1.15rem;
+}
+
+.relatedEmptyText {
+  color: rgba(var(--ink-rgb), 0.7);
 }
 
 .notFound {
@@ -262,6 +296,35 @@
 
 .notFoundText {
   color: rgba(var(--ink-rgb), 0.72);
+}
+
+.skeletonLayout {
+  display: grid;
+  gap: 18px;
+}
+
+.skeletonMedia {
+  height: 320px;
+  border-radius: 24px;
+}
+
+.skeletonInfo {
+  display: grid;
+  gap: 12px;
+}
+
+.skeletonLine {
+  height: 14px;
+}
+
+.skeletonLineShort {
+  height: 14px;
+  width: 60%;
+}
+
+.skeletonAction {
+  height: 40px;
+  width: 70%;
 }
 
 .reviewsCard {
@@ -320,7 +383,21 @@
     gap: 24px;
   }
 
+  .skeletonLayout {
+    grid-template-columns: 1.1fr 0.9fr;
+    align-items: start;
+  }
+
+  .skeletonMedia {
+    height: 420px;
+  }
+
   .actions {
     grid-template-columns: 1fr 1fr 1fr;
+  }
+
+  .relatedHeader {
+    grid-template-columns: 1.2fr 0.8fr;
+    align-items: end;
   }
 }

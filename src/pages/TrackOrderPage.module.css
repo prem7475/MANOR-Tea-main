@@ -48,6 +48,11 @@
   background: rgba(47, 138, 92, 0.08);
 }
 
+.stepCurrent {
+  border-color: rgba(var(--accent-rgb), 0.55);
+  background: rgba(var(--accent-rgb), 0.12);
+}
+
 .icon {
   width: 42px;
   height: 42px;
@@ -127,20 +132,13 @@
 }
 
 .empty {
-  padding: 18px;
-  border-radius: var(--radius-lg);
-  display: grid;
-  gap: 10px;
   max-width: 780px;
 }
 
-.emptyTitle {
-  font-weight: 950;
-  font-size: 1.25rem;
-}
-
-.emptyText {
-  color: rgba(var(--ink-rgb), 0.7);
+.loadingRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .mono {
